@@ -86,15 +86,22 @@ The tests focus on high-risk behavior: field validation, allowed workflow transi
 - [ ] Test narrow/mobile screen layout.
 
 ## Known limitations
-- No authentication or real role-based permissions.
-- No offline coordinator status changes.
-- No conflict-resolution UI for editing the same report on multiple devices.
-- No file/photo attachments, maps, push notifications or deployment configuration.
-- Local browser data can be lost if the user clears site storage; export/backup is a future improvement.
-- SQLite is suitable for a small demonstration, not a high-concurrency production deployment.
+1. No authentication or real user roles.
+2. Advanced data conflict resolution is not implemented.
+3. File and image attachments are not supported.
+4. Some features require an internet connection.
+5. Further security and performance testing is needed.
 
-## AI and development-tool disclosure
-AI assistance was used to draft the initial project structure, code, tests and documentation. The project owner must review the code, run the test suite and manual QA checklist, understand the implementation, and disclose any changes made before submission. Do not claim tests passed until `npm test` has been run successfully in the target environment.
+## AI and development-tool  
+AI Tool: ChatGPT
+
+Development Tools: Replit, Git, and GitHub.
+
+How AI was used: ChatGPT assisted with prompt  code generation, debugging, and preparing documentation.
+
+Code verification: I reviewed the generated code, ran the application, and tested important features, including offline report creation, local storage, synchronization, status updates, and activity history.
+
+Responsibility: I planned reviewed and tested the implementation and remain responsible for understanding and explaining the submitted project.
 
 ## Git workflow 
 
