@@ -15,7 +15,8 @@
   "dependencies": {
     "better-sqlite3": "^11.10.0",
     "cors": "^2.8.6",
-    "express": "^4.22.3"
+    "express": "^4.22.3",
+    "playwright-core": "^1.65.0"
   },
   "devDependencies": {
     "supertest": "^7.0.0"

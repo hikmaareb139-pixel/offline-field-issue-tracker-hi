@@ -1,10 +1,22 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const request = require('supertest');
+const testDatabaseDirectory = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'field-issues-api-test-')
+);
+process.env.FIELD_ISSUES_DB = path.join(testDatabaseDirectory, 'test.db');
 const { app, ALLOWED, validateReport } = require('../server');
 const { db, initializeDatabase } = require('../src/database');
 
 initializeDatabase();
+test.after(() => {
+  db.close();
+  fs.rmSync(testDatabaseDirectory, { recursive: true, force: true });
+});
+
 test('status workflow defines valid transitions', () => {
   assert.deepEqual(ALLOWED.Draft, ['Submitted', 'Rejected']);
   assert.deepEqual(ALLOWED.Resolved, ['In Progress']);

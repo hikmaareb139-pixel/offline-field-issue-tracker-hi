@@ -1,6 +1,8 @@
 const Database = require('better-sqlite3');
 const path = require('path');
-const db = new Database(path.join(__dirname, '..', 'field-issues.db'));
+const db = new Database(
+  process.env.FIELD_ISSUES_DB || path.join(__dirname, '..', 'field-issues.db')
+);
 db.pragma('journal_mode = WAL');
 
 function initializeDatabase() {
