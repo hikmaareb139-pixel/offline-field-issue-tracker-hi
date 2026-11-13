@@ -1,6 +1,18 @@
 
 const DB_NAME = 'field-issue-tracker';
 const STORE = 'reports';
+const BACKUP_FORMAT = 'field-issue-tracker-backup';
+const BACKUP_VERSION = 1;
+const MAX_BACKUP_BYTES = 5 * 1024 * 1024;
+const MAX_BACKUP_REPORTS = 2500;
+const REPORT_CATEGORIES = [
+  'Water Point',
+  'Equipment',
+  'Service Interruption',
+  'Safety Concern',
+  'Maintenance'
+];
+const REPORT_PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
 let localDb;
 
 function openLocalDb() {
@@ -57,12 +69,80 @@ function saveLocal(report) {
   });
 }
 
+function saveManyLocal(reports) {
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = localDb.transaction(STORE, 'readwrite');
+      const store = transaction.objectStore(STORE);
+
+      for (const report of reports) {
+        store.put(report);
+      }
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error || new Error('Could not save restored reports.'));
+      transaction.onabort = () => reject(transaction.error || new Error('Restoring reports was cancelled.'));
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 async function updateLocal(clientId, changes) {
   const reports = await getAllLocal();
   const report = reports.find(item => item.clientId === clientId);
   if (report) {
     await saveLocal({ ...report, ...changes });
   }
+}
+
+function validateBackupReport(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { error: 'Report entry must be an object.' };
+  }
+
+  const clientId = typeof value.clientId === 'string' ? value.clientId.trim() : '';
+  if (!clientId || clientId.length > 100) {
+    return { error: 'Report has an invalid client ID.' };
+  }
+
+  if (!REPORT_CATEGORIES.includes(value.category)) {
+    return { error: 'Report has an invalid category.' };
+  }
+
+  if (typeof value.description !== 'string' ||
+      value.description.trim().length < 5 ||
+      value.description.trim().length > 2000) {
+    return { error: 'Report description must contain 5–2000 characters.' };
+  }
+
+  if (typeof value.location !== 'string' ||
+      value.location.trim().length < 2 ||
+      value.location.trim().length > 200) {
+    return { error: 'Report location must contain 2–200 characters.' };
+  }
+
+  if (!REPORT_PRIORITIES.includes(value.priority)) {
+    return { error: 'Report has an invalid priority.' };
+  }
+
+  if (typeof value.reportedAt !== 'string' ||
+      Number.isNaN(Date.parse(value.reportedAt))) {
+    return { error: 'Report has an invalid date/time.' };
+  }
+
+  return {
+    report: {
+      clientId,
+      category: value.category,
+      description: value.description.trim(),
+      location: value.location.trim(),
+      priority: value.priority,
+      status: 'Submitted',
+      reportedAt: new Date(value.reportedAt).toISOString(),
+      syncState: 'Pending'
+    }
+  };
 }
 
 async function api(path, options = {}) {
@@ -235,6 +315,125 @@ async function syncPending() {
     console.error('Synchronization error:', error);
   }
 }
+
+document.getElementById('exportReportsButton').addEventListener('click', async () => {
+  const message = document.getElementById('backupMessage');
+
+  try {
+    const reports = (await getAllLocal())
+      .filter(report => report.syncState !== 'Synchronized')
+      .map(report => ({
+        clientId: report.clientId,
+        category: report.category,
+        description: report.description,
+        location: report.location,
+        priority: report.priority,
+        reportedAt: report.reportedAt
+      }));
+
+    if (!reports.length) {
+      message.textContent = 'No reports are waiting to sync, so there is nothing to export.';
+      return;
+    }
+
+    const backup = {
+      format: BACKUP_FORMAT,
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      reports
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `field-issue-tracker-backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    message.textContent = `Downloaded a backup of ${reports.length} unsynced report${reports.length === 1 ? '' : 's'}.`;
+  } catch (error) {
+    console.error('Report backup export failed:', error);
+    message.textContent = 'Export failed: ' + error.message;
+  }
+});
+
+document.getElementById('restoreReportsButton').addEventListener('click', async () => {
+  const fileInput = document.getElementById('backupFile');
+  const message = document.getElementById('backupMessage');
+  const file = fileInput.files?.[0];
+
+  if (!file) {
+    message.textContent = 'Choose a backup file before restoring reports.';
+    return;
+  }
+
+  if (file.size > MAX_BACKUP_BYTES) {
+    message.textContent = 'Backup file is too large. Choose a file that is 5 MB or smaller.';
+    return;
+  }
+
+  try {
+    const backup = JSON.parse(await file.text());
+    if (!backup || typeof backup !== 'object' || Array.isArray(backup) ||
+        backup.format !== BACKUP_FORMAT || backup.version !== BACKUP_VERSION ||
+        !Array.isArray(backup.reports)) {
+      throw new Error('This is not a supported Field Issue Tracker backup.');
+    }
+
+    if (backup.reports.length > MAX_BACKUP_REPORTS) {
+      throw new Error(`A backup can contain no more than ${MAX_BACKUP_REPORTS} reports.`);
+    }
+
+    const existingIds = new Set(
+      (await getAllLocal())
+        .map(report => report.clientId)
+        .filter(clientId => typeof clientId === 'string')
+    );
+    const seenIds = new Set();
+    const restored = [];
+    let invalidCount = 0;
+    let duplicateCount = 0;
+
+    for (const entry of backup.reports) {
+      const validation = validateBackupReport(entry);
+      if (validation.error) {
+        invalidCount += 1;
+        continue;
+      }
+
+      const report = validation.report;
+      if (seenIds.has(report.clientId) || existingIds.has(report.clientId)) {
+        duplicateCount += 1;
+        continue;
+      }
+
+      seenIds.add(report.clientId);
+      restored.push(report);
+    }
+
+    if (restored.length) {
+      await saveManyLocal(restored);
+    }
+
+    const invalidSummary = `${invalidCount} invalid report${invalidCount === 1 ? '' : 's'}`;
+    const duplicateSummary = `${duplicateCount} duplicate report${duplicateCount === 1 ? '' : 's'}`;
+    message.textContent =
+      `Restored ${restored.length} report${restored.length === 1 ? '' : 's'}. ` +
+      `Skipped ${invalidSummary} and ${duplicateSummary}.`;
+    fileInput.value = '';
+
+    await render();
+    if (navigator.onLine && restored.length) {
+      await syncPending();
+    }
+  } catch (error) {
+    console.error('Report backup restore failed:', error);
+    message.textContent = 'Restore failed: ' + error.message;
+  }
+});
 
 async function showDetails(key, all) {
   const report = all.find(item =>

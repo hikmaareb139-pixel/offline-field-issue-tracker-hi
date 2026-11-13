@@ -40,6 +40,20 @@
       <div class="filters"><input id="searchInput" placeholder="Search reports…" aria-label="Search reports"><select id="statusFilter" aria-label="Filter by status"><option value="">All statuses</option><option>Draft</option><option>Submitted</option><option>Assigned</option><option>In Progress</option><option>Resolved</option><option>Rejected</option></select></div>
       <div id="reportList" class="report-list"><p class="empty">Loading reports…</p></div>
     </section>
+    <section class="panel backup-panel" aria-labelledby="backupHeading">
+      <div class="section-heading">
+        <div><p class="eyebrow">LOCAL BACKUP</p><h2 id="backupHeading">Protect unsynced reports</h2></div>
+      </div>
+      <p class="backup-copy">Download reports waiting to sync so you can restore them if this device’s site data is cleared.</p>
+      <div class="backup-actions">
+        <button id="exportReportsButton" class="secondary" type="button">Export unsynced reports</button>
+        <label class="backup-file">Choose a backup file
+          <input id="backupFile" type="file" accept=".json,application/json">
+        </label>
+        <button id="restoreReportsButton" type="button">Restore reports</button>
+      </div>
+      <p id="backupMessage" class="backup-message" role="status" aria-live="polite"></p>
+    </section>
     <p class="footer-note">Field Issue Tracker · Offline-ready prototype</p>
   </main>
   <dialog id="detailDialog"><div class="dialog-head"><h2>Report details</h2><button id="closeDialog" class="icon-button" aria-label="Close">×</button></div><div id="detailContent"></div></dialog>

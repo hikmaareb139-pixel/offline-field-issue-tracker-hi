@@ -117,10 +117,79 @@ test('offline reports save locally, survive refresh, and sync after reconnect', 
     'offline submission must not write to the test server database'
   );
 
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export unsynced reports' }).click()
+  ]);
+  const backupPath = await download.path();
+  assert.ok(backupPath, 'the backup should be downloaded');
+  const backup = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+  assert.equal(backup.format, 'field-issue-tracker-backup');
+  assert.equal(backup.version, 1);
+  assert.equal(backup.reports.length, 1);
+
+  backup.reports[0].status = 'Rejected';
+  backup.reports[0].syncState = 'Synchronized';
+  backup.reports[0].serverId = 999;
+  backup.reports[0].history = [{ action: 'untrusted imported history' }];
+  backup.reports.push({
+    ...backup.reports[0],
+    clientId: '',
+    category: 'Not a supported category'
+  });
+  const craftedBackupPath = path.join(testDatabaseDirectory, 'crafted-backup.json');
+  fs.writeFileSync(craftedBackupPath, JSON.stringify(backup));
+
+  await page.evaluate(() => new Promise((resolve, reject) => {
+    const request = indexedDB.open('field-issue-tracker', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction('reports', 'readwrite');
+      transaction.objectStore('reports').clear();
+      transaction.oncomplete = () => {
+        database.close();
+        resolve();
+      };
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    };
+  }));
+
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: 'Report a field issue.' }).waitFor();
-  await page.getByText(uniqueDescription, { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Restore reports' }).waitFor();
+  assert.doesNotMatch(
+    await page.locator('#reportList').textContent(),
+    new RegExp(uniqueDescription)
+  );
   assert.match(await page.locator('#connection').textContent(), /Offline/);
+
+  await page.locator('#backupFile').setInputFiles(craftedBackupPath);
+  await page.getByRole('button', { name: 'Restore reports' }).click();
+  await page.getByText(uniqueDescription, { exact: true }).waitFor();
+  await page.waitForFunction(() =>
+    document.getElementById('backupMessage').textContent.includes('Restored 1 report')
+  );
+
+  const restoredLocalReport = await page.evaluate(clientId => new Promise((resolve, reject) => {
+    const request = indexedDB.open('field-issue-tracker', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      const read = database.transaction('reports').objectStore('reports').get(clientId);
+      read.onerror = () => reject(read.error);
+      read.onsuccess = () => {
+        database.close();
+        resolve(read.result);
+      };
+    };
+  }), localReport.clientId);
+  assert.equal(restoredLocalReport.syncState, 'Pending');
+  assert.equal(restoredLocalReport.status, 'Submitted');
+  assert.equal(restoredLocalReport.serverId, undefined);
+  assert.equal(restoredLocalReport.history, undefined);
+  assert.match(await page.locator('#backupMessage').textContent(), /Skipped 1 invalid report/);
 
   await context.setOffline(false);
   await page.waitForFunction(
