@@ -109,4 +109,4 @@ The project was managed using reptile  Git and GitHub. The source code was organ
 
 ## Approximate effort and future improvements
 
-Approximately 10–12 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
+Approximately 12–15 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
