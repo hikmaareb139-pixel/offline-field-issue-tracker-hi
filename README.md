@@ -110,4 +110,4 @@ git commit -m "Add synchronization tests and project documentation"
 Only commit work that has actually been reviewed and completed. Do not fabricate earlier timestamps or history.
 
 ## Approximate effort and future improvements
-Record your actual time spent before submission. With more time, add authentication and permissions, richer conflict resolution, offline edits, attachment upload queue, stronger end-to-end browser tests, backups and production deployment.
+Approximately 10–12 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
