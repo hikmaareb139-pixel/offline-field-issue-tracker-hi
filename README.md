@@ -105,3 +105,75 @@ Synchronization Strategy
 8. Users can retry synchronization using Sync Now or when connectivity returns.
 
 The service worker caches the application interface, not API responses.
+Status Workflow and Assumptions
+
+- Draft → Submitted → Assigned → In Progress → Resolved.
+- Rejected is allowed from Draft, Submitted, Assigned, and In Progress.
+- Resolved → In Progress is allowed to reopen a resolved issue.
+- Rejected is terminal in this prototype.
+- The server is authoritative for status changes.
+- Offline status editing is not implemented.
+- Report content is treated as immutable after submission.
+- Duplicate detection uses a unique client-generated UUID.
+
+Data Safety and Error Handling
+
+- Required fields are validated in the browser and API.
+- User-provided text is HTML-escaped before rendering.
+- Invalid workflow transitions are rejected.
+- Failed synchronization does not delete local reports.
+- SQLite uses WAL mode for improved reliability under normal single-server use.
+- Authentication, authorization, and advanced multi-user conflict resolution are not implemented.
+
+Testing Priorities
+
+Testing focuses on:
+
+- Field validation.
+- Allowed workflow transitions.
+- Duplicate prevention.
+- Invalid status-change rejection.
+- API behavior.
+
+Offline browser behavior also requires manual testing.
+
+Manual QA Checklist
+
+- [ ] Create a report while online.
+- [ ] Refresh and confirm the report remains visible.
+- [ ] Create a report while offline.
+- [ ] Refresh while offline and confirm the report remains saved.
+- [ ] Restore internet connectivity.
+- [ ] Confirm pending reports synchronize.
+- [ ] Retry synchronization and check for duplicates.
+- [ ] Confirm failed synchronization preserves local data.
+- [ ] Test status updates and activity history.
+- [ ] Check the mobile layout.
+
+Known Limitations
+
+1. No authentication or real user roles.
+2. Advanced data conflict resolution is not implemented.
+3. File and image attachments are not supported.
+4. Some features require an internet connection.
+5. Further security and performance testing is needed.
+
+AI and Development Tools
+
+AI Tool: ChatGPT
+
+Development Tools: Replit, Git, and GitHub.
+
+How AI Was Used: ChatGPT assisted with project planning, code generation, debugging, explaining technical concepts, and preparing documentation.
+
+Code Verification: I reviewed the generated code, ran the application, and tested important features, including offline report creation, local storage, synchronization, status updates, and activity history.
+
+Responsibility: I planned, reviewed, and tested the implementation and remain responsible for understanding and explaining the submitted project.
+
+Git Workflow
+
+The project was managed using Replit, Git, and GitHub. The source code was organized into separate folders for the frontend, backend, database, and tests. Changes were developed and tested during implementation and uploaded to a dedicated GitHub repository. The repository includes the application source code, documentation, dependency configuration, and instructions for running the project.
+
+Approximate Effort and Future Improvements
+
+Approximately 12–15 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
