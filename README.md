@@ -24,7 +24,7 @@ npm install
 npm run seed
 npm start
 ```
-Open http://localhost:3000 in a browser. To run tests:
+Open https://d0e10a43-efda-4c42-a85e-546835e3cef5-00-2is2mjhvac3cf.worf.replit.dev/ in a browser. To run tests:
 ```bash
 npm test
 ```
