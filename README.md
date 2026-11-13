@@ -1,34 +1,20 @@
-Setup
+Offline Field Issue Tracker
 
-npm install
-npm run seed
-npm start
-
-Open the local URL printed by the server in your browser.
+A full-stack, offline-first application that helps field workers report infrastructure issues and allows coordinators to manage reports.
 
 Published Application:
 https://offline-field-issue-trackerzip--hikmaareb.replit.app/
 
-To run tests:
+Features
 
-npm test
-
-AI and Development Tools
-
-AI Tool: ChatGPT
-
-Development Tools: Replit, Git, and GitHub.
-
-How AI Was Used: ChatGPT assisted with project planning, code generation, debugging, explaining technical concepts, and preparing documentation.
-
-Code Verification: I reviewed the generated code, ran the application, and tested important features, including offline report creation, local storage, synchronization, status updates, and activity history.
-
-Responsibility: I planned, reviewed, and tested the implementation and remain responsible for understanding and explaining the submitted project.
-
-Git Workflow
-
-The project was managed using Replit, Git, and GitHub. The source code was organized into separate folders for the frontend, backend, database, and tests. Changes were developed and tested during implementation and uploaded to a dedicated GitHub repository. The repository includes the application source code, documentation, dependency configuration, and instructions for running the project.
-
-Approximate Effort and Future Improvements
-
-Approximately 12–15 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
+- Create reports with category, description, location, priority, and date/time.
+- Save reports locally using IndexedDB.
+- Keep reports after refreshing or reopening the browser.
+- Automatically synchronize reports when internet connectivity returns.
+- Provide a manual Sync Now option.
+- Display Pending, Synchronized, and Failed synchronization states.
+- Prevent duplicate server records during synchronization retries.
+- Manage report statuses through a coordinator workflow.
+- View report details and activity history.
+- Cache the application interface using a service worker.
+- Include automated backend tests.
