@@ -1,6 +1,6 @@
 const CACHE_PREFIX = 'field-tracker-';
-const CACHE = 'field-tracker-v2';
-const ASSETS = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json'];
+const CACHE = 'field-tracker-v3';
+const ASSETS = ['/', '/index.html', '/styles.css', '/app.js', '/manifest.json', '/favicon.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
