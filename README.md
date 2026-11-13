@@ -77,3 +77,19 @@ Technology Stack
 - SQLite
 - IndexedDB
 - Service Workers
+Project Architecture
+
+- "public/": Frontend interface, IndexedDB storage, service worker, and manifest.
+- "server.js": Express REST API, validation, workflow rules, and static hosting.
+- "src/database.js": SQLite schema and database connection.
+- "tests/": Automated backend tests.
+
+API Endpoints
+
+Method| Endpoint| Purpose
+GET| "/api/health"| Health check
+GET| "/api/reports"| List reports
+GET| "/api/reports/:id"| Read one report with history
+POST| "/api/reports"| Create or synchronize a report
+PATCH| "/api/reports/:id/status"| Change report status
+GET| "/api/reports/:id/history"| Read activity history
