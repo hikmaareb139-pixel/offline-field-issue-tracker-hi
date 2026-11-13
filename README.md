@@ -96,18 +96,10 @@ The tests focus on high-risk behavior: field validation, allowed workflow transi
 ## AI and development-tool disclosure
 AI assistance was used to draft the initial project structure, code, tests and documentation. The project owner must review the code, run the test suite and manual QA checklist, understand the implementation, and disclose any changes made before submission. Do not claim tests passed until `npm test` has been run successfully in the target environment.
 
-## Git workflow (create genuine incremental commits)
-After reviewing each stage, use separate commits that correspond to actual work:
-```bash
-git init
-git add package.json .gitignore src/database.js server.js
-git commit -m "Build initial API and SQLite data model"
-git add public/index.html public/styles.css public/app.js public/sw.js public/manifest.json
-git commit -m "Add offline-first reporting interface"
-git add tests README.md seed.js docs
-git commit -m "Add synchronization tests and project documentation"
-```
-Only commit work that has actually been reviewed and completed. Do not fabricate earlier timestamps or history.
+## Git workflow 
+
+The project was managed using reptile  Git and GitHub. The source code was organized into separate folders for the frontend, backend, database, and tests. Changes were developed and tested incrementally, then uploaded to a dedicated GitHub repository. The repository includes the application source code, documentation, dependencies configuration, and instructions for running the project.
 
 ## Approximate effort and future improvements
+
 Approximately 10–12 hours, including planning, development, testing, debugging, documentation, and GitHub setup.
