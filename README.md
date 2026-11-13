@@ -93,3 +93,15 @@ GET| "/api/reports/:id"| Read one report with history
 POST| "/api/reports"| Create or synchronize a report
 PATCH| "/api/reports/:id/status"| Change report status
 GET| "/api/reports/:id/history"| Read activity history
+Synchronization Strategy
+
+1. The browser creates a unique UUID ("clientId") for each report.
+2. The report is saved immediately in IndexedDB.
+3. The report is marked Pending until synchronization succeeds.
+4. When online, the browser sends the report to the backend API.
+5. The server uses a unique client ID to prevent duplicate records.
+6. After successful synchronization, the local report is marked Synchronized.
+7. If synchronization fails, the local report remains saved and is marked Failed.
+8. Users can retry synchronization using Sync Now or when connectivity returns.
+
+The service worker caches the application interface, not API responses.
